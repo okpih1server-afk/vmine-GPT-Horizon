@@ -7,7 +7,7 @@ breadth-first traversal in fixed x/y/z order. Both accepted blocks and examined
 positions are bounded. Checked coordinate addition prevents wrapping at integer
 limits. Preview reads do not mutate blocks or load chunks.
 
-Selection happens before the original block is removed. Optional delayed mode queues host-player extra hits by BFS layer distance and revalidates actor, block state, tool, permission, hunger and enchantment at execution time. LAN guest actions are packet-scoped, so their extra breaks run immediately rather than enter a queue that has no guest tick. Optional drop merging scopes a thread-local source position around each extra native break and redirects item-entity spawn calls while preserving the origin block's drops. The original native
+Selection happens before the original block is removed. Optional delayed mode queues host-player extra hits by their sequence index and revalidates actor, block state, tool, permission, hunger and enchantment at execution time. LAN guest actions are packet-scoped, so their extra breaks run immediately rather than enter a queue that has no guest tick. Optional drop merging scopes a thread-local source position around each extra native break and redirects item-entity spawn calls while preserving the origin block's drops. The original native
 mining call then runs exactly once. If it fails or removes nothing, extra mining
 never starts. Each extra hit must still have its original state and pass current
 tool/food checks. Changed hits are skipped; failed native breaks abort the
