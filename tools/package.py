@@ -32,9 +32,28 @@ def package():
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o100644 << 16
             archive.writestr(info, content)
-    print(json.dumps(dict(file=str(out), size=out.stat().st_size,
-                         sha256=hashlib.sha256(out.read_bytes()).hexdigest()), indent=2))
+    return dict(file=str(out), size=out.stat().st_size,
+                sha256=hashlib.sha256(out.read_bytes()).hexdigest())
+
+def package_enchantment():
+    """Build the optional Veinmine enchantment data pack for Minecraft 26.3."""
+    root = ROOT / 'enchantment-pack'
+    files = {str(path.relative_to(root)): path.read_bytes()
+             for path in sorted(root.rglob('*')) if path.is_file()}
+    out = ROOT / 'target' / 'veinminer-enchantment.zip'
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with zipfile.ZipFile(out, 'w', compression=zipfile.ZIP_DEFLATED) as archive:
+        for name, content in sorted(files.items()):
+            info = zipfile.ZipInfo(name, (2026, 1, 1, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            archive.writestr(info, content)
+    return dict(enchantment_file=str(out), enchantment_size=out.stat().st_size,
+                enchantment_sha256=hashlib.sha256(out.read_bytes()).hexdigest())
+
 
 
 if __name__ == '__main__':
-    package()
+    report = package()
+    report.update(package_enchantment())
+    print(json.dumps(report, indent=2))
