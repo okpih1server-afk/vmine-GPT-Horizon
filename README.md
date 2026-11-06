@@ -15,7 +15,7 @@ The native port currently supports:
 - JSON configuration and `/veinminer` commands;
 - optional Veinmine-enchantment requirement (`requireEnchantment`).
 
-It does **not** claim feature parity with the NeoForge JAR yet. Delayed per-block mining, drop merging, client-side keybind/highlighting/pattern selection, and the Veinmine enchantment addon are not implemented in this native port. See [feature coverage](docs/compatibility.md) and [validation](docs/validation.md).
+The client preview/highlighting/pattern-selection addon is not yet ported. Delayed mining, merged drops, optional V-key gating and the optional Veinmine enchantment data pack are available in this native port. See [feature coverage](docs/compatibility.md) and [validation](docs/validation.md).
 
 ## Build and package
 
@@ -25,7 +25,7 @@ The source targets the exact Horizon and Horizon Mixins revisions pinned in `com
 python3 tools/package.py
 ```
 
-The output is a source-only `.hnmod` bundle under `target/`. CI also publishes this file as the `veinminer-hnmod` workflow artifact after all engine and native Horizon checks pass. A compatible Horizon launcher with experimental native-mod support is required; this is not a NeoForge/Fabric JAR. See [the Horizon native-mod guide](https://github.com/horizon-rust/horizon/blob/main/docs/native-mods.md) and the [architecture notes](docs/architecture.md).
+The output is a source-only `.hnmod` bundle under `target/`. The same command also builds `target/veinminer-enchantment.zip`, an optional Minecraft 26.3 data pack. CI publishes both artifacts. Install the enchantment ZIP in the world's `datapacks/` directory, enable it, then set `requireEnchantment: true` in the Veinminer JSON configuration. A compatible Horizon launcher with experimental native-mod support is required; this is not a NeoForge/Fabric JAR. See [the Horizon native-mod guide](https://github.com/horizon-rust/horizon/blob/main/docs/native-mods.md) and the [architecture notes](docs/architecture.md).
 
 ## License and provenance
 
