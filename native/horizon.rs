@@ -301,7 +301,6 @@ impl Game<'_> {
                 let Some((settings, _)) = config.action(&block.name, tool.as_ref().map(|tool| tool.item.as_str())) else { continue; };
                 if !settings.enabled
                     || settings.must_sneak && !player.sneaking
-                    || settings.keybind_required && !player.veinmine_pressed
                     || settings.permission_restricted && !config.players.contains(&player.name)
                     || settings.require_enchantment && host.enchantment_level("veinminer_enchantment:veinminer") < settings.min_enchant_level
                     || settings.need_correct_tool && !host.can_harvest(&block)
