@@ -381,6 +381,7 @@ pub fn preview<H: Host>(
 pub struct Runtime {
     cooldowns: BTreeMap<Actor, i64>,
     disabled: BTreeSet<Actor>,
+    key_active: BTreeSet<Actor>,
 }
 impl Runtime {
     pub fn enabled(&self, actor: Actor) -> bool {
@@ -392,6 +393,9 @@ impl Runtime {
         } else {
             self.disabled.insert(actor);
         }
+    }
+    pub fn set_key_active(&mut self, actor: Actor, active: bool) {
+        if active { self.key_active.insert(actor); } else { self.key_active.remove(&actor); }
     }
     pub fn mine<H: Host>(
         &mut self,
@@ -411,7 +415,7 @@ impl Runtime {
                 && player.survival
                 && self.enabled(player.actor)
                 && (!settings.must_sneak || player.sneaking)
-                && (!settings.keybind_required || player.veinmine_pressed)
+                && (!settings.keybind_required || player.veinmine_pressed || self.key_active.contains(&player.actor))
                 && (!settings.require_enchantment || host.enchantment_level("veinminer_enchantment:veinminer") >= settings.min_enchant_level)
                 && (!settings.permission_restricted || config.players.contains(&player.name))
                 && self
