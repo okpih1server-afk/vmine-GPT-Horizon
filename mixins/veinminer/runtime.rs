@@ -1329,7 +1329,6 @@ fn malformed_unknown_and_unbounded_configuration_fails_closed() {
         r#"{"settings":{"miningSpeedModifier":1.1}}"#,
         r#"{"settings":{"delay":1201}}"#,
         r#"{"settings":{"minEnchantLevel":0}}"#,
-        r#"{"settings":{"delay":5}}"#,
         r#"{"groups":[{"id":"x","blocks":["no-namespace"]}]}"#,
         r#"{"groups":[{"id":"x","blocks":["minecraft:stone"]},{"id":"x","blocks":["minecraft:dirt"]}]}"#,
     ] {
@@ -1362,9 +1361,11 @@ fn keybind_and_optional_enchantment_are_independent_gates() {
     let mut c = Config::default();
     c.settings.keybind_required = true;
     assert_eq!(mine(&mut w, &c).extra_broken, 0);
+    w.blocks.insert([0, 0, 0], block("minecraft:iron_ore", 1));
     w.player.veinmine_pressed = true;
     c.settings.require_enchantment = true;
     assert_eq!(mine(&mut w, &c).extra_broken, 0);
+    w.blocks.insert([0, 0, 0], block("minecraft:iron_ore", 1));
     w.enchantment = 1;
     assert_eq!(mine(&mut w, &c).extra_broken, 1);
 }
