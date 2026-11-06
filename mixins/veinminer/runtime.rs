@@ -745,6 +745,15 @@ impl Host for Native<'_, '_, '_> {
     ) -> Result<bool> {
         let player = self.player();
         let tool_item = self.tool().map(|tool| tool.item);
+        // Guest actions are scoped to an incoming packet, not the host tick.
+        // Execute their chain immediately rather than leave jobs with no actor tick.
+        if self.game.lan_acting_uuid.is_some() {
+            let broken = self.mine_with_drop_target(p, preserve, drop_target)?;
+            if broken {
+                self.exhaust(exhaustion);
+            }
+            return Ok(broken);
+        }
         if let Some(queue) = self.pending.as_deref_mut() {
             queue.push_back(PendingMine {
                 due_tick: player.tick.saturating_add(i64::from(delay)),
