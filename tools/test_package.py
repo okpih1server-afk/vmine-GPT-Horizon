@@ -53,6 +53,8 @@ class PackageTests(unittest.TestCase):
         with zipfile.ZipFile(path) as archive:
             expected = {
                 'pack.mcmeta',
+                'assets/veinminer_enchantment/lang/en_us.json',
+                'assets/veinminer_enchantment/lang/uk_ua.json',
                 'data/veinminer_enchantment/enchantment/veinminer.json',
                 'data/minecraft/tags/enchantment/in_enchanting_table.json',
                 'data/minecraft/tags/enchantment/tradeable.json',
