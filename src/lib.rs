@@ -17,6 +17,7 @@ pub struct Settings {
     pub decrease_durability: bool,
     pub hunger_per_block: f32,
     pub mining_speed_multiplier: f32,
+    pub mining_speed_modifier: f32,
     pub separate_group_mining: bool,
     pub permission_restricted: bool,
 }
@@ -32,6 +33,7 @@ impl Default for Settings {
             decrease_durability: true,
             hunger_per_block: 0.0,
             mining_speed_multiplier: 1.0,
+            mining_speed_modifier: 0.0,
             separate_group_mining: false,
             permission_restricted: false,
         }
@@ -56,6 +58,11 @@ impl Settings {
         {
             return Err("miningSpeedMultiplier must be finite and 0.1..10".into());
         }
+        if !self.mining_speed_modifier.is_finite()
+            || !(0.0..=1.0).contains(&self.mining_speed_modifier)
+        {
+            return Err("miningSpeedModifier must be finite and 0..1".into());
+        }
         Ok(())
     }
 }
@@ -71,6 +78,7 @@ pub struct Overrides {
     pub decrease_durability: Option<bool>,
     pub hunger_per_block: Option<f32>,
     pub mining_speed_multiplier: Option<f32>,
+    pub mining_speed_modifier: Option<f32>,
     pub separate_group_mining: Option<bool>,
     pub permission_restricted: Option<bool>,
 }
@@ -86,6 +94,7 @@ impl Overrides {
             decrease_durability,
             hunger_per_block,
             mining_speed_multiplier,
+            mining_speed_modifier,
             separate_group_mining,
             permission_restricted
         );
