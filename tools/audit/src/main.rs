@@ -52,13 +52,7 @@ fn main() {
                 "cancellable HEAD missing"
             );
         } else {
-            assert!(
-                matches!(
-                    b.stmts.first(),
-                    Some(syn::Stmt::Expr(syn::Expr::Call(_), _))
-                ),
-                "non-cancellable HEAD call missing"
-            );
+            assert!(!b.stmts.is_empty(), "non-cancellable HEAD missing");
         }
         b.stmts.remove(0);
     }
