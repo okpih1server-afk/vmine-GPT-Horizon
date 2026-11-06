@@ -786,7 +786,6 @@ impl Game<'_> {
                 let Some((settings, _)) = config.action(&block.name, tool.as_ref().map(|tool| tool.item.as_str())) else { continue; };
                 if !settings.enabled
                     || settings.must_sneak && !player.sneaking
-                    || settings.keybind_required && !player.veinmine_pressed
                     || settings.permission_restricted && !config.players.contains(&player.name)
                     || settings.require_enchantment && host.enchantment_level("veinminer_enchantment:veinminer") < settings.min_enchant_level
                     || settings.need_correct_tool && !host.can_harvest(&block)
@@ -873,6 +872,8 @@ struct World {
     drops: usize,
     xp: usize,
     exhaustion: f32,
+    drop_targets: Vec<Option<Position>>,
+    enchantment: u32,
     failed: BTreeSet<Position>,
     error: Option<Position>,
     change_after_origin: Option<Position>,
@@ -902,6 +903,8 @@ impl World {
             drops: 0,
             xp: 0,
             exhaustion: 0.0,
+            drop_targets: Vec::new(),
+            enchantment: 0,
             failed: BTreeSet::new(),
             error: None,
             change_after_origin: None,
@@ -932,6 +935,11 @@ impl Host for World {
     fn has_food(&self) -> bool {
         self.food
     }
+    fn mine_with_drop_target(&mut self, p: Position, preserve: bool, drop_target: Option<Position>) -> Result<bool, Self::Error> {
+        self.drop_targets.push(drop_target);
+        self.mine(p, preserve)
+    }
+    fn enchantment_level(&self, _: &str) -> u32 { self.enchantment }
     fn mine(&mut self, p: Position, preserve: bool) -> Result<bool, Self::Error> {
         self.calls.push((p, preserve));
         if self.error == Some(p) {
@@ -1155,6 +1163,8 @@ fn malformed_unknown_and_unbounded_configuration_fails_closed() {
         r#"{"settings":{"miningSpeedMultiplier":11}}"#,
         r#"{"settings":{"miningSpeedModifier":-0.1}}"#,
         r#"{"settings":{"miningSpeedModifier":1.1}}"#,
+        r#"{"settings":{"delay":1201}}"#,
+        r#"{"settings":{"minEnchantLevel":0}}"#,
         r#"{"settings":{"delay":5}}"#,
         r#"{"groups":[{"id":"x","blocks":["no-namespace"]}]}"#,
         r#"{"groups":[{"id":"x","blocks":["minecraft:stone"]},{"id":"x","blocks":["minecraft:dirt"]}]}"#,
@@ -1165,6 +1175,33 @@ fn malformed_unknown_and_unbounded_configuration_fails_closed() {
     let json = serde_json::to_string(&c).unwrap();
     assert!(Config::from_json(&json).is_ok());
 }
+
+#[test]
+fn delayed_layers_keep_bfs_distance_and_merged_drops_use_source_position() {
+    let mut w = World::new(&[[0, 0, 0], [1, 0, 0], [2, 0, 0]]);
+    let targets = BTreeSet::from(["minecraft:iron_ore".into()]);
+    let hits = preview(&w, [0, 0, 0], &targets, &Settings::default());
+    assert_eq!(hits.iter().map(|hit| hit.distance).collect::<Vec<_>>(), vec![0, 1, 2]);
+    let mut c = Config::default();
+    c.settings.delay = 2;
+    c.settings.merge_item_drops = true;
+    assert_eq!(mine(&mut w, &c).extra_broken, 2);
+    assert_eq!(w.drop_targets, vec![Some([0, 0, 0]), Some([0, 0, 0])]);
+}
+
+#[test]
+fn keybind_and_optional_enchantment_are_independent_gates() {
+    let mut w = World::new(&[[0, 0, 0], [1, 0, 0]]);
+    let mut c = Config::default();
+    c.settings.keybind_required = true;
+    assert_eq!(mine(&mut w, &c).extra_broken, 0);
+    w.player.veinmine_pressed = true;
+    c.settings.require_enchantment = true;
+    assert_eq!(mine(&mut w, &c).extra_broken, 0);
+    w.enchantment = 1;
+    assert_eq!(mine(&mut w, &c).extra_broken, 1);
+}
+
 #[test]
 fn coordinates_at_integer_limits_do_not_wrap_to_other_chunks() {
     let p = [i32::MAX, 0, i32::MIN];
