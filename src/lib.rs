@@ -471,7 +471,7 @@ impl Runtime {
         self.cooldowns.retain(|_, end| *end > player.tick);
         self.cooldowns
             .insert(player.actor, player.tick.saturating_add(settings.cooldown));
-        for hit in hits.into_iter().skip(1) {
+        for (index, hit) in hits.into_iter().enumerate().skip(1) {
             if host.tool() != tool
                 && host.tool().as_ref().map(|t| &t.item) != tool.as_ref().map(|t| &t.item)
             {
@@ -506,7 +506,7 @@ impl Runtime {
                 }
                 broken
             } else {
-                let delay = settings.delay.saturating_mul(hit.distance.max(1));
+                let delay = settings.delay.saturating_mul(index as u32);
                 host.schedule_mine(
                     hit.position,
                     &hit.block,
