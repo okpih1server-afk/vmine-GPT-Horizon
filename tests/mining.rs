@@ -339,17 +339,31 @@ fn delayed_layers_keep_bfs_distance_and_merged_drops_use_source_position() {
 
 #[test]
 fn keybind_and_optional_enchantment_are_independent_gates() {
-    let mut w = World::new(&[[0, 0, 0], [1, 0, 0]]);
-    let mut c = Config::default();
-    c.settings.keybind_required = true;
-    assert_eq!(mine(&mut w, &c).extra_broken, 0);
-    w.blocks.insert([0, 0, 0], block("minecraft:iron_ore", 1));
-    w.player.veinmine_pressed = true;
-    c.settings.require_enchantment = true;
-    assert_eq!(mine(&mut w, &c).extra_broken, 0);
-    w.blocks.insert([0, 0, 0], block("minecraft:iron_ore", 1));
-    w.enchantment = 1;
-    assert_eq!(mine(&mut w, &c).extra_broken, 1);
+    let mut key_world = World::new(&[[0, 0, 0], [1, 0, 0]]);
+    let mut key_config = Config::default();
+    key_config.settings.keybind_required = true;
+    assert_eq!(mine(&mut key_world, &key_config).extra_broken, 0);
+    key_world
+        .blocks
+        .insert([0, 0, 0], block("minecraft:iron_ore", 1));
+    key_world.player.veinmine_pressed = true;
+    assert_eq!(mine(&mut key_world, &key_config).extra_broken, 1);
+
+    let mut enchant_world = World::new(&[[0, 0, 0], [1, 0, 0]]);
+    let mut enchant_config = Config::default();
+    enchant_config.settings.require_enchantment = true;
+    enchant_config.settings.min_enchant_level = 2;
+    assert_eq!(mine(&mut enchant_world, &enchant_config).extra_broken, 0);
+    enchant_world
+        .blocks
+        .insert([0, 0, 0], block("minecraft:iron_ore", 1));
+    enchant_world.enchantment = 1;
+    assert_eq!(mine(&mut enchant_world, &enchant_config).extra_broken, 0);
+    enchant_world
+        .blocks
+        .insert([0, 0, 0], block("minecraft:iron_ore", 1));
+    enchant_world.enchantment = 2;
+    assert_eq!(mine(&mut enchant_world, &enchant_config).extra_broken, 1);
 }
 
 #[test]
