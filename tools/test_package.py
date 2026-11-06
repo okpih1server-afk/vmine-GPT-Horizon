@@ -28,7 +28,7 @@ class PackageTests(unittest.TestCase):
         project = tomllib.loads((ROOT / 'Cargo.toml').read_text())['package']
         expected = {'horizon-native.json'} | {
             f'mixins/veinminer/{name}' for name in
-            ('command.rs', 'guest-command.rs', 'horizon-mixin.toml', 'mining.rs', 'runtime.rs')
+            ('command.rs', 'drop.rs', 'guest-command.rs', 'horizon-mixin.toml', 'mining.rs', 'runtime.rs', 'tick.rs')
         }
         with zipfile.ZipFile(first['file']) as archive:
             self.assertEqual(set(archive.namelist()), expected)
