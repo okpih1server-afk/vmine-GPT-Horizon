@@ -263,6 +263,7 @@ impl Game<'_> {
                 runtime,
                 config,
                 pending,
+                ..
             } = state;
             runtime
                 .mine(
@@ -287,7 +288,7 @@ impl Game<'_> {
                 }));
             }
             let config = state.config.as_ref().unwrap();
-            let mut host = Native {
+            let host = Native {
                 game,
                 pending: None,
             };
