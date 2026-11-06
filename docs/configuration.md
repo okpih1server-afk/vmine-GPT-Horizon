@@ -9,12 +9,19 @@ a declared group's `id` and `blocks`. Unknown keys fail validation.
 |---|---:|---|
 | `enabled` | true | Enable extra mining globally |
 | `cooldown` | 20 | World ticks between chains, per UUID; 0..72000 |
+| `delay` | 1 | Ticks per BFS layer for host-player extra breaks; 0..1200. LAN guest chains run immediately because guest actions are packet-scoped |
+| `mergeItemDrops` | false | Redirect item entities from extra blocks to the origin block |
+| `requireEnchantment` | false | Require the optional `veinminer_enchantment:veinminer` enchantment |
+| `minEnchantLevel` | 1 | Minimum Veinmine level when `requireEnchantment` is enabled; 1..255 |
+| `keybindRequired` | false | Require holding V while starting a chain; V press/release is sent to the server |
 | `mustSneak` | false | Require the acting player's sneak state |
 | `maxChain` | 100 | Maximum selected blocks, including the original; 1..4096 |
 | `needCorrectTool` | true | Require the game's correct tool when the block requires one for drops |
 | `searchRadius` | 1 | Chebyshev neighbour radius, 1..3; 1 includes diagonals |
 | `decreaseDurability` | true | Damage tools normally; extra mining stops before the final point |
 | `hungerPerBlock` | 0.0 | Additional exhaustion per successful extra block; finite 0..40 |
+| `miningSpeedMultiplier` | 1.0 | Global destroy-progress multiplier; 0.1..10 |
+| `miningSpeedModifier` | 0.0 | Vein-size penalty, 0..1; each extra block increases mining time |
 | `separateGroupMining` | false | When true, select only the origin's block ID within its group |
 | `permissionRestricted` | false | Require the player name in the top-level `players` list |
 
@@ -22,11 +29,11 @@ The original click always uses Horizon's original behavior and cost. Durability
 protection and additional exhaustion apply only to extra blocks. When an item
 has no durability limit, the durability gate does not apply. If positive
 `hungerPerBlock` is configured, zero food and saturation stop extra mining.
-When tool use breaks the original tool, the chain stops immediately.
+When tool use breaks the original tool, the chain stops immediately. Delayed tasks recheck the block state, tool, permissions, hunger and enchantment when they execute. The V activation key is hard-coded; the visual preview, HUD and pattern selector from the upstream client addon are not included.
 
 ```json
 {
-  "settings": { "mustSneak": true, "maxChain": 64 },
+  "settings": { "mustSneak": true, "maxChain": 64, "delay": 2, "mergeItemDrops": true },
   "blocks": ["minecraft:nether_quartz_ore"],
   "groups": [
     {
