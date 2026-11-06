@@ -7,11 +7,16 @@
     "needCorrectTool": true,
     "searchRadius": 1,
     "decreaseDurability": true,
-    "hungerPerBlock": 0.0,
-    "miningSpeedMultiplier": 1.0,
-    "miningSpeedModifier": 0.0,
+    "hungerPerBlock": 0,
+    "miningSpeedMultiplier": 1,
+    "miningSpeedModifier": 0,
     "separateGroupMining": false,
-    "permissionRestricted": false
+    "permissionRestricted": false,
+    "delay": 1,
+    "mergeItemDrops": false,
+    "requireEnchantment": false,
+    "minEnchantLevel": 1,
+    "keybindRequired": false
   },
   "blocks": [
     "minecraft:ancient_debris",
@@ -37,7 +42,12 @@
         "miningSpeedMultiplier": null,
         "miningSpeedModifier": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -56,7 +66,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -75,7 +90,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -94,7 +114,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -113,7 +138,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -132,7 +162,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -151,7 +186,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -170,7 +210,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -189,7 +234,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -208,7 +258,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -227,7 +282,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -246,7 +306,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -265,7 +330,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -284,7 +354,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -303,7 +378,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -322,7 +402,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     },
     {
@@ -341,7 +426,12 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "separateGroupMining": null,
-        "permissionRestricted": null
+        "permissionRestricted": null,
+        "delay": null,
+        "mergeItemDrops": null,
+        "requireEnchantment": null,
+        "minEnchantLevel": null,
+        "keybindRequired": null
       }
     }
   ],
