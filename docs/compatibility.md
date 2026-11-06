@@ -18,10 +18,10 @@ configuration format and native Horizon adapter.
 | Permission restriction | Explicit name allowlist; no permissions plugin integration |
 | Settings reload | Implemented with permission level 2 and error retention |
 | Single player, LAN and dedicated server path | Shared native adapter type-checked; full live sessions require manual verification |
-| Hold-to-mine keybind | Implemented as optional V-key gate (`keybindRequired`); remote client packet preview remains future work |
+| Hold-to-mine keybind | Implemented as optional V-key hold (`keybindRequired`); press/release state is forwarded to the server, but preview/highlighting remains future work |
 | Client preview/highlighting, HUD, tunnel/flat shape selector | Future work; core exposes a pure connected-block preview API |
 | Veinmine enchantment addon | Implemented as an optional data pack (`veinminer-enchantment.zip`) plus `requireEnchantment` / `minEnchantLevel` server checks |
-| Delayed per-layer mining | Implemented: queued extra breaks run on later game ticks; `delay` sets ticks per BFS layer |
+| Delayed per-layer mining | Implemented for the local host: queued extra breaks run on later game ticks; LAN guest chains execute immediately because guest actions are packet-scoped |
 | Mining-speed adjustment | Implemented with the upstream vein-size penalty (`miningSpeedModifier`, 0–1) plus an optional global multiplier (`miningSpeedMultiplier`, 0.1×–10×), applied by a RETURN modifier on Horizon `destroy_progress` |
 | Merged drop positions | Implemented: item entities spawned during extra breaks redirect to the source block |
 | Upstream `/settings`, `/groups`, `/presets`, `/blocks` editing | Future work; edit JSON and reload |
