@@ -44,6 +44,28 @@ class PackageTests(unittest.TestCase):
                 if info.filename != 'horizon-native.json':
                     self.assertEqual(archive.read(info.filename), (ROOT / info.filename).read_bytes())
 
+    def test_reproducible_enchantment_pack(self):
+        result = json.loads(subprocess.check_output([sys.executable, 'tools/package.py'], cwd=ROOT, text=True))
+        path = Path(result['enchantment_file'])
+        data = path.read_bytes()
+        self.assertEqual(result['enchantment_size'], len(data))
+        self.assertEqual(result['enchantment_sha256'], hashlib.sha256(data).hexdigest())
+        with zipfile.ZipFile(path) as archive:
+            expected = {
+                'pack.mcmeta',
+                'data/veinminer_enchantment/enchantment/veinminer.json',
+                'data/minecraft/tags/enchantment/in_enchanting_table.json',
+                'data/minecraft/tags/enchantment/tradeable.json',
+                'data/minecraft/tags/enchantment/on_random_loot.json',
+                'data/minecraft/tags/enchantment/treasure.json',
+            }
+            self.assertEqual(set(archive.namelist()), expected)
+            self.assertIsNone(archive.testzip())
+            self.assertEqual(json.loads(archive.read('pack.mcmeta'))['pack']['min_format'], [121, 0])
+            enchantment = json.loads(archive.read('data/veinminer_enchantment/enchantment/veinminer.json'))
+            self.assertEqual(enchantment['max_level'], 1)
+            self.assertEqual(enchantment['slots'], ['mainhand'])
+
 
 if __name__ == '__main__':
     unittest.main()
