@@ -8,6 +8,7 @@
     "searchRadius": 1,
     "decreaseDurability": true,
     "hungerPerBlock": 0.0,
+    "miningSpeedMultiplier": 1.0,
     "separateGroupMining": false,
     "permissionRestricted": false
   },
@@ -32,6 +33,7 @@
         "searchRadius": null,
         "decreaseDurability": null,
         "hungerPerBlock": null,
+        "miningSpeedMultiplier": null,
         "separateGroupMining": null,
         "permissionRestricted": null
       }
