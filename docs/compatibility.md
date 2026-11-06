@@ -25,8 +25,8 @@ configuration format and native Horizon adapter.
 | Upstream `/settings`, `/groups`, `/presets`, `/blocks` editing | Future work; edit JSON and reload |
 | Tags, wildcard IDs and client/server configuration packets | Future work; explicit IDs and server configuration only |
 | Automatic updates | Future work |
-| Native mixin bundle | Implemented: three TOML HEAD injections and one support module, applied by horizon-mixins 0.6.0 |
-| `.hmod` packaging | Future work; the bundle builds a pinned custom native binary |
+| Native mixin bundle | Implemented: three cancellable TOML HEAD hooks, one RETURN modifier and one support module, applied by horizon-mixins 0.6.0 |
+| `.hnmod` packaging | Implemented: deterministic source bundle, published as a CI artifact; launcher support remains experimental |
 
 The maximum chain counts eligible selected blocks, including the original.
 Search radius is Chebyshev distance around each accepted block; larger radii
