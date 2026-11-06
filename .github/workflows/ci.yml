@@ -18,6 +18,12 @@ jobs:
       - run: python3 tools/test_ci.py
       - run: python3 tools/bundle.py --check
       - run: python3 tools/test_package.py
+      - run: python3 tools/package.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: veinminer-hnmod
+          path: target/*.hnmod
+          if-no-files-found: error
       - run: cargo fmt --manifest-path tools/audit/Cargo.toml --check
   native:
     runs-on: ubuntu-latest

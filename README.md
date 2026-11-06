@@ -18,13 +18,13 @@ It does **not** claim feature parity with the NeoForge JAR yet. Delayed per-bloc
 
 ## Build and package
 
-The source targets the exact Horizon and Horizon Mixins revisions pinned in `compatibility.json`. Build the source bundle with:
+The source targets the exact Horizon and Horizon Mixins revisions pinned in `compatibility.json`. Build the source bundle locally with:
 
 ```sh
 python3 tools/package.py
 ```
 
-The output is a source-only `.hnmod` bundle under `target/`. A compatible Horizon launcher with experimental native-mod support is required; this is not a NeoForge/Fabric JAR. See [the Horizon native-mod guide](https://github.com/horizon-rust/horizon/blob/main/docs/native-mods.md) and the [architecture notes](docs/architecture.md).
+The output is a source-only `.hnmod` bundle under `target/`. CI also publishes this file as the `veinminer-hnmod` workflow artifact after all engine and native Horizon checks pass. A compatible Horizon launcher with experimental native-mod support is required; this is not a NeoForge/Fabric JAR. See [the Horizon native-mod guide](https://github.com/horizon-rust/horizon/blob/main/docs/native-mods.md) and the [architecture notes](docs/architecture.md).
 
 ## License and provenance
 
