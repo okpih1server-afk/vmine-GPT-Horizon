@@ -24,6 +24,11 @@ jobs:
           name: veinminer-hnmod
           path: target/*.hnmod
           if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: veinminer-enchantment-pack
+          path: target/veinminer-enchantment.zip
+          if-no-files-found: error
       - run: cargo fmt --manifest-path tools/audit/Cargo.toml --check
   native:
     runs-on: ubuntu-latest
