@@ -1,4 +1,8 @@
-use std::{collections::{BTreeMap, BTreeSet}, env, fs, path::Path};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    env, fs,
+    path::Path,
+};
 use syn::{Block, Item};
 fn block<'a>(items: &'a mut [Item], node: &[usize]) -> &'a mut Block {
     let (index, rest) = node.split_first().unwrap();
@@ -49,7 +53,10 @@ fn main() {
             );
         } else {
             assert!(
-                matches!(b.stmts.first(), Some(syn::Stmt::Expr(syn::Expr::Call(_), _))),
+                matches!(
+                    b.stmts.first(),
+                    Some(syn::Stmt::Expr(syn::Expr::Call(_), _))
+                ),
                 "non-cancellable HEAD call missing"
             );
         }
