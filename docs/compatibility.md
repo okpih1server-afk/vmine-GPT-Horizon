@@ -20,7 +20,7 @@ configuration format and native Horizon adapter.
 | Single player, LAN and dedicated server path | Shared native adapter type-checked; full live sessions require manual verification |
 | Client addon keybind, previews, HUD, tunnel/flat shapes | Future work; the core exposes a pure preview API |
 | Enchantment addon | Future work |
-| Mining-speed adjustment | Implemented as a configurable RETURN modifier on Horizon `destroy_progress` (0.1×–10×); delayed/layered breaking remains future work |
+| Mining-speed adjustment | Implemented with the upstream vein-size penalty (`miningSpeedModifier`, 0–1) plus an optional global multiplier (`miningSpeedMultiplier`, 0.1×–10×), applied by a RETURN modifier on Horizon `destroy_progress`; delayed/layered breaking remains future work |
 | Merged drop positions | Future work; native drops remain at their own blocks |
 | Upstream `/settings`, `/groups`, `/presets`, `/blocks` editing | Future work; edit JSON and reload |
 | Tags, wildcard IDs and client/server configuration packets | Future work; explicit IDs and server configuration only |
