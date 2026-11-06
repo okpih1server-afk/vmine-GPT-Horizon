@@ -18,8 +18,7 @@ to a `Runtime` per world on the hosting thread.
 `native/horizon.rs` adds a module inside Horizon's existing game binary and
 implements `Host` using its private APIs. It calls `break_block_as_player`,
 retaining Horizon's loot, XP, block entities, neighbours, statistics, level
-events and server-mod event behavior. It never calls `/setblock`. The existing
-`with_player_actor` scope and guest-state swapping surround the chain. Extra
+events and server-mod event behavior. It never calls `/setblock`. The adapter reads Horizon's acting-player UUID and LAN guest-scoped identity for each mining action. Extra
 calls go directly to the original method, which avoids recursive chaining.
 This shared entry point is reached by in-frame mining and guest mining on the
 integrated/LAN/dedicated server. The adapter's survival gate excludes remote
