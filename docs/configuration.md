@@ -9,7 +9,7 @@ a declared group's `id` and `blocks`. Unknown keys fail validation.
 |---|---:|---|
 | `enabled` | true | Enable extra mining globally |
 | `cooldown` | 20 | World ticks between chains, per UUID; 0..72000 |
-| `delay` | 1 | Ticks per BFS layer for host-player extra breaks; 0..1200. LAN guest chains run immediately because guest actions are packet-scoped |
+| `delay` | 1 | Ticks between each host-player extra block break; 0..1200. LAN guest chains run immediately because guest actions are packet-scoped |
 | `mergeItemDrops` | false | Redirect item entities from extra blocks to the origin block |
 | `requireEnchantment` | false | Require the optional `veinminer_enchantment:veinminer` enchantment |
 | `minEnchantLevel` | 1 | Minimum Veinmine level when `requireEnchantment` is enabled; 1..255 |
