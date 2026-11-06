@@ -8,7 +8,7 @@ Validated on Linux x86_64, 2026-10-28, Rust 1.95.0, against Horizon
 | `cargo fmt --all --check` | Passed |
 | `rustfmt --edition 2024 --check native/horizon.rs` | Passed |
 | `cargo clippy --all-targets --locked --offline -- -D warnings` | Passed |
-| `cargo test --locked --offline` | 13 engine tests passed; config utility compiles |
+| `cargo test --locked --offline` | 15 engine tests passed; config utility compiles |
 | `python3 tools/test_stage.py` | Three real mixin HEADs and one module verified; repeated bytes/mtimes preserved; canonical AST audit and unchanged checkout |
 | `python3 tools/horizon.py check` | Real Horizon game binary with native adapter type-checks, no default audio/controller features |
 | `python3 tools/horizon.py test` | Same 13 engine tests passed inside the linked Horizon game test binary; 135 unrelated upstream tests filtered |
