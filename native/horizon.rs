@@ -173,7 +173,10 @@ impl Game<'_> {
                     config
                 }));
             }
-            state.config.as_ref().map_or(1.0, |config| config.settings.mining_speed_multiplier)
+            state
+                .config
+                .as_ref()
+                .map_or(1.0, |config| config.settings.mining_speed_multiplier)
         }) * speed
     }
 
