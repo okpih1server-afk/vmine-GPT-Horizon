@@ -13,6 +13,11 @@ pub type Actor = [i32; 4];
 pub struct Settings {
     pub enabled: bool,
     pub cooldown: i64,
+    pub delay: u32,
+    pub merge_item_drops: bool,
+    pub require_enchantment: bool,
+    pub min_enchant_level: u32,
+    pub keybind_required: bool,
     pub must_sneak: bool,
     pub max_chain: usize,
     pub need_correct_tool: bool,
@@ -29,6 +34,11 @@ impl Default for Settings {
         Self {
             enabled: true,
             cooldown: 20,
+            delay: 1,
+            merge_item_drops: false,
+            require_enchantment: false,
+            min_enchant_level: 1,
+            keybind_required: false,
             must_sneak: false,
             max_chain: 100,
             need_correct_tool: true,
@@ -53,6 +63,12 @@ impl Settings {
         if !(0..=72_000).contains(&self.cooldown) {
             return Err("cooldown must be 0..72000 ticks".into());
         }
+        if self.delay > 1_200 {
+            return Err("delay must be 0..1200 ticks per layer".into());
+        }
+        if !(1..=255).contains(&self.min_enchant_level) {
+            return Err("minEnchantLevel must be 1..255".into());
+        }
         if !self.hunger_per_block.is_finite() || !(0.0..=40.0).contains(&self.hunger_per_block) {
             return Err("hungerPerBlock must be finite and 0..40".into());
         }
@@ -74,6 +90,11 @@ impl Settings {
 #[serde(default, deny_unknown_fields, rename_all = "camelCase")]
 pub struct Overrides {
     pub cooldown: Option<i64>,
+    pub delay: Option<u32>,
+    pub merge_item_drops: Option<bool>,
+    pub require_enchantment: Option<bool>,
+    pub min_enchant_level: Option<u32>,
+    pub keybind_required: Option<bool>,
     pub must_sneak: Option<bool>,
     pub max_chain: Option<usize>,
     pub need_correct_tool: Option<bool>,
@@ -90,6 +111,11 @@ impl Overrides {
         macro_rules! fields { ($($field:ident),*) => { $(if let Some(value) = self.$field { settings.$field = value; })* }; }
         fields!(
             cooldown,
+            delay,
+            merge_item_drops,
+            require_enchantment,
+            min_enchant_level,
+            keybind_required,
             must_sneak,
             max_chain,
             need_correct_tool,
@@ -261,6 +287,7 @@ pub struct Player {
     pub tick: i64,
     pub survival: bool,
     pub sneaking: bool,
+    pub veinmine_pressed: bool,
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Tool {
@@ -278,12 +305,22 @@ pub trait Host {
     fn has_food(&self) -> bool;
     // Must use the game's ordinary player-mining path, never /setblock.
     fn mine(&mut self, position: Position, preserve_durability: bool) -> Result<bool, Self::Error>;
+    fn mine_with_drop_target(&mut self, position: Position, preserve_durability: bool, _drop_target: Option<Position>) -> Result<bool, Self::Error> {
+        self.mine(position, preserve_durability)
+    }
+    fn schedule_mine(&mut self, position: Position, _expected: &Block, preserve_durability: bool, _delay: u32, drop_target: Option<Position>, exhaustion: f32) -> Result<bool, Self::Error> {
+        let broken = self.mine_with_drop_target(position, preserve_durability, drop_target)?;
+        if broken { self.exhaust(exhaustion); }
+        Ok(broken)
+    }
+    fn enchantment_level(&self, _id: &str) -> u32 { 0 }
     fn exhaust(&mut self, amount: f32);
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Hit {
     pub position: Position,
     pub block: Block,
+    pub distance: u32,
 }
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Report {
@@ -304,10 +341,10 @@ pub fn preview<H: Host>(
         return hits;
     }
     let mut seen = BTreeSet::from([origin]);
-    let mut queue = VecDeque::from([origin]);
+    let mut queue = VecDeque::from([(origin, 0_u32)]);
     // This bound caps reads of nonmatching neighbours as well as accepted blocks.
     let max_examined = settings.max_chain.saturating_mul(343).min(1_000_000);
-    while let Some(position) = queue.pop_front() {
+    while let Some((position, distance)) = queue.pop_front() {
         if hits.len() >= settings.max_chain {
             break;
         }
@@ -320,7 +357,7 @@ pub fn preview<H: Host>(
         {
             continue;
         }
-        hits.push(Hit { position, block });
+        hits.push(Hit { position, block, distance });
         let r = settings.search_radius;
         for x in -r..=r {
             for y in -r..=r {
@@ -334,7 +371,7 @@ pub fn preview<H: Host>(
                     };
                     let next = [x, y, z];
                     if seen.len() < max_examined && seen.insert(next) {
-                        queue.push_back(next);
+                        queue.push_back((next, distance.saturating_add(1)));
                     }
                 }
             }
@@ -377,6 +414,8 @@ impl Runtime {
                 && player.survival
                 && self.enabled(player.actor)
                 && (!settings.must_sneak || player.sneaking)
+                && (!settings.keybind_required || player.veinmine_pressed)
+                && (!settings.require_enchantment || host.enchantment_level("veinminer_enchantment:veinminer") >= settings.min_enchant_level)
                 && (!settings.permission_restricted || config.players.contains(&player.name))
                 && self
                     .cooldowns
@@ -428,11 +467,20 @@ impl Runtime {
                 report.stopped = true;
                 break;
             }
-            if !host.mine(hit.position, !settings.decrease_durability)? {
+            let preserve = !settings.decrease_durability;
+            let drop_target = settings.merge_item_drops.then_some(origin);
+            let broken = if settings.delay == 0 {
+                let broken = host.mine_with_drop_target(hit.position, preserve, drop_target)?;
+                if broken { host.exhaust(settings.hunger_per_block); }
+                broken
+            } else {
+                let delay = settings.delay.saturating_mul(hit.distance.max(1));
+                host.schedule_mine(hit.position, &hit.block, preserve, delay, drop_target, settings.hunger_per_block)?
+            };
+            if !broken {
                 report.stopped = true;
                 break;
             }
-            host.exhaust(settings.hunger_per_block);
             report.extra_broken += 1;
         }
         Ok(report)
@@ -441,11 +489,51 @@ impl Runtime {
 
 }
 use engine::{Block, Config, Host, Player, Position, Runtime, Tool};
+use std::cell::{Cell, RefCell};
+use std::collections::VecDeque;
+
+#[derive(Clone)]
+struct PendingMine {
+    due_tick: i64,
+    actor: engine::Actor,
+    position: Position,
+    expected: Block,
+    tool_item: Option<String>,
+    preserve_durability: bool,
+    drop_target: Option<Position>,
+    exhaustion: f32,
+}
 
 #[derive(Default)]
 pub(super) struct State {
     runtime: Runtime,
     config: Option<Config>,
+    pending: VecDeque<PendingMine>,
+}
+
+thread_local! {
+    static DROP_TARGET: RefCell<Option<[f64; 3]>> = const { RefCell::new(None) };
+    static REDIRECTING_DROP: Cell<bool> = const { Cell::new(false) };
+}
+struct DropTargetGuard(Option<[f64; 3]>);
+impl DropTargetGuard {
+    fn set(position: Option<Position>) -> Self {
+        let target = position.map(|p| [p[0] as f64 + 0.5, p[1] as f64 + 0.5, p[2] as f64 + 0.5]);
+        let previous = DROP_TARGET.with(|slot| slot.replace(target));
+        Self(previous)
+    }
+}
+impl Drop for DropTargetGuard {
+    fn drop(&mut self) { DROP_TARGET.with(|slot| { slot.replace(self.0); }); }
+}
+struct RedirectGuard;
+impl RedirectGuard {
+    fn enter() -> Option<Self> {
+        REDIRECTING_DROP.with(|flag| if flag.replace(true) { None } else { Some(Self) })
+    }
+}
+impl Drop for RedirectGuard {
+    fn drop(&mut self) { REDIRECTING_DROP.with(|flag| flag.set(false)); }
 }
 
 thread_local! {
@@ -483,10 +571,11 @@ fn load_config() -> std::result::Result<Config, String> {
     }
 }
 
-struct Native<'g, 'r> {
+struct Native<'g, 'r, 'q> {
     game: &'g mut Game<'r>,
+    pending: Option<&'q mut VecDeque<PendingMine>>,
 }
-impl Host for Native<'_, '_> {
+impl Host for Native<'_, '_, '_> {
     type Error = Box<dyn std::error::Error>;
     fn player(&mut self) -> Player {
         Player {
@@ -506,6 +595,7 @@ impl Host for Native<'_, '_> {
                 .game
                 .keys
                 .contains(&winit::keyboard::KeyCode::ShiftLeft),
+            veinmine_pressed: self.game.keys.contains(&winit::keyboard::KeyCode::KeyV),
         }
     }
     fn block(&self, p: Position) -> Option<Block> {
@@ -556,6 +646,10 @@ impl Host for Native<'_, '_> {
             .is_some_and(|p| p.health.food.food > 0 || p.health.food.saturation > 0.0)
     }
     fn mine(&mut self, p: Position, preserve: bool) -> Result<bool> {
+        self.mine_with_drop_target(p, preserve, None)
+    }
+    fn mine_with_drop_target(&mut self, p: Position, preserve: bool, drop_target: Option<Position>) -> Result<bool> {
+        let _drop_scope = DropTargetGuard::set(drop_target);
         let before = self.block(p);
         let held = preserve.then(|| self.game.inventory[self.game.selected].clone());
         // Temporarily remove pre-existing damage, then restore damage (and a tool
@@ -573,6 +667,30 @@ impl Host for Native<'_, '_> {
         }
         result?;
         Ok(before.is_some() && self.block(p) != before)
+    }
+    fn schedule_mine(&mut self, p: Position, expected: &Block, preserve: bool, delay: u32, drop_target: Option<Position>, exhaustion: f32) -> Result<bool> {
+        let player = self.player();
+        let tool_item = self.tool().map(|tool| tool.item);
+        if let Some(queue) = self.pending.as_deref_mut() {
+            queue.push_back(PendingMine {
+                due_tick: player.tick.saturating_add(i64::from(delay)),
+                actor: player.actor,
+                position: p,
+                expected: expected.clone(),
+                tool_item,
+                preserve_durability: preserve,
+                drop_target,
+                exhaustion,
+            });
+            Ok(true)
+        } else {
+            let broken = self.mine_with_drop_target(p, preserve, drop_target)?;
+            if broken { self.exhaust(exhaustion); }
+            Ok(broken)
+        }
+    }
+    fn enchantment_level(&self, id: &str) -> u32 {
+        self.game.held().map_or(0, |stack| stack.enchantment_level(id))
     }
     fn exhaust(&mut self, amount: f32) {
         if amount > 0.0
@@ -593,10 +711,9 @@ impl Game<'_> {
                     config
                 }));
             }
-            let config = state.config.as_ref().unwrap();
-            state
-                .runtime
-                .mine(&mut Native { game }, config, pos)
+            let State { runtime, config, pending } = state;
+            runtime
+                .mine(&mut Native { game, pending: Some(pending) }, config.as_ref().unwrap(), pos)
                 .map(|_| ())
         })
     }
@@ -611,7 +728,7 @@ impl Game<'_> {
                 }));
             }
             let config = state.config.as_ref().unwrap();
-            let mut host = Native { game };
+            let mut host = Native { game, pending: None };
             let tool = host.tool();
             let Some(block) = host.block(pos) else { return speed };
             let Some((settings, targets)) = config.action(
@@ -630,6 +747,59 @@ impl Game<'_> {
         })
     }
 
+    pub(super) fn veinminer_redirect_drop(&mut self, stack: &horizon_client::items::ItemStack, position: [f64; 3], velocity: [f64; 3], pickup_delay: u32) -> core::ops::ControlFlow<()> {
+        let target = DROP_TARGET.with(|slot| *slot.borrow());
+        let Some(target) = target else { return core::ops::ControlFlow::Continue(()); };
+        let Some(_guard) = RedirectGuard::enter() else { return core::ops::ControlFlow::Continue(()); };
+        self.spawn_item(stack.clone(), target, velocity, pickup_delay);
+        let _ = position;
+        core::ops::ControlFlow::Break(())
+    }
+    pub(super) fn veinminer_tick(&mut self) -> Result<()> {
+        with_state(self, |game, state| {
+            if state.config.is_none() {
+                state.config = Some(load_config().unwrap_or_else(|error| {
+                    eprintln!("Veinminer disabled: {error}");
+                    let mut config = Config::default();
+                    config.settings.enabled = false;
+                    config
+                }));
+            }
+            let actor = game.acting_player_uuid();
+            let now = game.world.game_time;
+            let mut due = Vec::new();
+            let mut waiting = VecDeque::new();
+            while let Some(task) = state.pending.pop_front() {
+                if task.due_tick <= now && task.actor == actor { due.push(task); }
+                else { waiting.push_back(task); }
+            }
+            state.pending = waiting;
+            let config = state.config.as_ref().unwrap().clone();
+            for task in due {
+                let mut host = Native { game, pending: None };
+                let player = host.player();
+                if !player.survival || !state.runtime.enabled(task.actor) { continue; }
+                let Some(block) = host.block(task.position) else { continue; };
+                if block != task.expected { continue; }
+                let tool = host.tool();
+                if task.tool_item.as_ref().is_some_and(|id| tool.as_ref().is_none_or(|tool| &tool.item != id)) { continue; }
+                let Some((settings, _)) = config.action(&block.name, tool.as_ref().map(|tool| tool.item.as_str())) else { continue; };
+                if !settings.enabled
+                    || settings.must_sneak && !player.sneaking
+                    || settings.keybind_required && !player.veinmine_pressed
+                    || settings.permission_restricted && !config.players.contains(&player.name)
+                    || settings.require_enchantment && host.enchantment_level("veinminer_enchantment:veinminer") < settings.min_enchant_level
+                    || settings.need_correct_tool && !host.can_harvest(&block)
+                    || settings.decrease_durability && tool.as_ref().and_then(|tool| tool.remaining).is_some_and(|n| n <= 1)
+                    || settings.hunger_per_block > 0.0 && !host.has_food()
+                { continue; }
+                if host.mine_with_drop_target(task.position, task.preserve_durability, task.drop_target)? {
+                    host.exhaust(task.exhaustion);
+                }
+            }
+            Ok(())
+        })
+    }
     pub(super) fn veinminer_command(&mut self, command: &str) -> Option<bool> {
         with_state(self, |game, state| {
             let mut words = command.split_whitespace();
@@ -720,6 +890,7 @@ impl World {
                 tick: 0,
                 survival: true,
                 sneaking: false,
+                veinmine_pressed: false,
             },
             tool: Some(Tool {
                 item: "minecraft:iron_pickaxe".into(),
