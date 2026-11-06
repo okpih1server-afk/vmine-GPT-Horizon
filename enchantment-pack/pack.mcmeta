@@ -1,0 +1,13 @@
+{
+  "pack": {
+    "description": "Veinmine enchantment for Horizon Veinminer",
+    "min_format": [
+      121,
+      0
+    ],
+    "max_format": [
+      121,
+      0
+    ]
+  }
+}
