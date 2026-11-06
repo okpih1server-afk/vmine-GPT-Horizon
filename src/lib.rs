@@ -302,15 +302,32 @@ pub trait Host {
     fn has_food(&self) -> bool;
     // Must use the game's ordinary player-mining path, never /setblock.
     fn mine(&mut self, position: Position, preserve_durability: bool) -> Result<bool, Self::Error>;
-    fn mine_with_drop_target(&mut self, position: Position, preserve_durability: bool, _drop_target: Option<Position>) -> Result<bool, Self::Error> {
+    fn mine_with_drop_target(
+        &mut self,
+        position: Position,
+        preserve_durability: bool,
+        _drop_target: Option<Position>,
+    ) -> Result<bool, Self::Error> {
         self.mine(position, preserve_durability)
     }
-    fn schedule_mine(&mut self, position: Position, _expected: &Block, preserve_durability: bool, _delay: u32, drop_target: Option<Position>, exhaustion: f32) -> Result<bool, Self::Error> {
+    fn schedule_mine(
+        &mut self,
+        position: Position,
+        _expected: &Block,
+        preserve_durability: bool,
+        _delay: u32,
+        drop_target: Option<Position>,
+        exhaustion: f32,
+    ) -> Result<bool, Self::Error> {
         let broken = self.mine_with_drop_target(position, preserve_durability, drop_target)?;
-        if broken { self.exhaust(exhaustion); }
+        if broken {
+            self.exhaust(exhaustion);
+        }
         Ok(broken)
     }
-    fn enchantment_level(&self, _id: &str) -> u32 { 0 }
+    fn enchantment_level(&self, _id: &str) -> u32 {
+        0
+    }
     fn exhaust(&mut self, amount: f32);
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -354,7 +371,11 @@ pub fn preview<H: Host>(
         {
             continue;
         }
-        hits.push(Hit { position, block, distance });
+        hits.push(Hit {
+            position,
+            block,
+            distance,
+        });
         let r = settings.search_radius;
         for x in -r..=r {
             for y in -r..=r {
@@ -395,7 +416,11 @@ impl Runtime {
         }
     }
     pub fn set_key_active(&mut self, actor: Actor, active: bool) {
-        if active { self.key_active.insert(actor); } else { self.key_active.remove(&actor); }
+        if active {
+            self.key_active.insert(actor);
+        } else {
+            self.key_active.remove(&actor);
+        }
     }
     pub fn mine<H: Host>(
         &mut self,
@@ -415,8 +440,12 @@ impl Runtime {
                 && player.survival
                 && self.enabled(player.actor)
                 && (!settings.must_sneak || player.sneaking)
-                && (!settings.keybind_required || player.veinmine_pressed || self.key_active.contains(&player.actor))
-                && (!settings.require_enchantment || host.enchantment_level("veinminer_enchantment:veinminer") >= settings.min_enchant_level)
+                && (!settings.keybind_required
+                    || player.veinmine_pressed
+                    || self.key_active.contains(&player.actor))
+                && (!settings.require_enchantment
+                    || host.enchantment_level("veinminer_enchantment:veinminer")
+                        >= settings.min_enchant_level)
                 && (!settings.permission_restricted || config.players.contains(&player.name))
                 && self
                     .cooldowns
@@ -472,11 +501,20 @@ impl Runtime {
             let drop_target = settings.merge_item_drops.then_some(origin);
             let broken = if settings.delay == 0 {
                 let broken = host.mine_with_drop_target(hit.position, preserve, drop_target)?;
-                if broken { host.exhaust(settings.hunger_per_block); }
+                if broken {
+                    host.exhaust(settings.hunger_per_block);
+                }
                 broken
             } else {
                 let delay = settings.delay.saturating_mul(hit.distance.max(1));
-                host.schedule_mine(hit.position, &hit.block, preserve, delay, drop_target, settings.hunger_per_block)?
+                host.schedule_mine(
+                    hit.position,
+                    &hit.block,
+                    preserve,
+                    delay,
+                    drop_target,
+                    settings.hunger_per_block,
+                )?
             };
             if !broken {
                 report.stopped = true;
