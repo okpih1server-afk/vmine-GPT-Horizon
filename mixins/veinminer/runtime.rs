@@ -1330,7 +1330,10 @@ fn delayed_layers_keep_bfs_distance_and_merged_drops_use_source_position() {
     let mut w = World::new(&[[0, 0, 0], [1, 0, 0], [2, 0, 0]]);
     let targets = BTreeSet::from(["minecraft:iron_ore".into()]);
     let hits = preview(&w, [0, 0, 0], &targets, &Settings::default());
-    assert_eq!(hits.iter().map(|hit| hit.distance).collect::<Vec<_>>(), vec![0, 1, 2]);
+    assert_eq!(
+        hits.iter().map(|hit| hit.distance).collect::<Vec<_>>(),
+        vec![0, 1, 2]
+    );
     let mut c = Config::default();
     c.settings.delay = 2;
     c.settings.merge_item_drops = true;
