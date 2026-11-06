@@ -1383,8 +1383,16 @@ fn keybind_and_optional_enchantment_are_independent_gates() {
     key_world
         .blocks
         .insert([0, 0, 0], block("minecraft:iron_ore", 1));
-    key_world.player.veinmine_pressed = true;
-    assert_eq!(mine(&mut key_world, &key_config).extra_broken, 1);
+    let actor = key_world.player.actor;
+    let mut key_runtime = Runtime::default();
+    key_runtime.set_key_active(actor, true);
+    assert_eq!(
+        key_runtime
+            .mine(&mut key_world, &key_config, [0, 0, 0])
+            .unwrap()
+            .extra_broken,
+        1
+    );
 
     let mut enchant_world = World::new(&[[0, 0, 0], [1, 0, 0]]);
     let mut enchant_config = Config::default();
