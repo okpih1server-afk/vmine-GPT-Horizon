@@ -34,22 +34,40 @@ thread_local! {
 struct DropTargetGuard(Option<[f64; 3]>);
 impl DropTargetGuard {
     fn set(position: Option<Position>) -> Self {
-        let target = position.map(|p| [p[0] as f64 + 0.5, p[1] as f64 + 0.5, p[2] as f64 + 0.5]);
+        let target = position.map(|p| {
+            [
+                p[0] as f64 + 0.5,
+                p[1] as f64 + 0.5,
+                p[2] as f64 + 0.5,
+            ]
+        });
         let previous = DROP_TARGET.with(|slot| slot.replace(target));
         Self(previous)
     }
 }
 impl Drop for DropTargetGuard {
-    fn drop(&mut self) { DROP_TARGET.with(|slot| { slot.replace(self.0); }); }
+    fn drop(&mut self) {
+        DROP_TARGET.with(|slot| {
+            slot.replace(self.0);
+        });
+    }
 }
 struct RedirectGuard;
 impl RedirectGuard {
     fn enter() -> Option<Self> {
-        REDIRECTING_DROP.with(|flag| if flag.replace(true) { None } else { Some(Self) })
+        REDIRECTING_DROP.with(|flag| {
+            if flag.replace(true) {
+                None
+            } else {
+                Some(Self)
+            }
+        })
     }
 }
 impl Drop for RedirectGuard {
-    fn drop(&mut self) { REDIRECTING_DROP.with(|flag| flag.set(false)); }
+    fn drop(&mut self) {
+        REDIRECTING_DROP.with(|flag| flag.set(false));
+    }
 }
 
 thread_local! {
@@ -164,7 +182,12 @@ impl Host for Native<'_, '_, '_> {
     fn mine(&mut self, p: Position, preserve: bool) -> Result<bool> {
         self.mine_with_drop_target(p, preserve, None)
     }
-    fn mine_with_drop_target(&mut self, p: Position, preserve: bool, drop_target: Option<Position>) -> Result<bool> {
+    fn mine_with_drop_target(
+        &mut self,
+        p: Position,
+        preserve: bool,
+        drop_target: Option<Position>,
+    ) -> Result<bool> {
         let _drop_scope = DropTargetGuard::set(drop_target);
         let before = self.block(p);
         let held = preserve.then(|| self.game.inventory[self.game.selected].clone());
@@ -184,7 +207,15 @@ impl Host for Native<'_, '_, '_> {
         result?;
         Ok(before.is_some() && self.block(p) != before)
     }
-    fn schedule_mine(&mut self, p: Position, expected: &Block, preserve: bool, delay: u32, drop_target: Option<Position>, exhaustion: f32) -> Result<bool> {
+    fn schedule_mine(
+        &mut self,
+        p: Position,
+        expected: &Block,
+        preserve: bool,
+        delay: u32,
+        drop_target: Option<Position>,
+        exhaustion: f32,
+    ) -> Result<bool> {
         let player = self.player();
         let tool_item = self.tool().map(|tool| tool.item);
         if let Some(queue) = self.pending.as_deref_mut() {
@@ -201,7 +232,9 @@ impl Host for Native<'_, '_, '_> {
             Ok(true)
         } else {
             let broken = self.mine_with_drop_target(p, preserve, drop_target)?;
-            if broken { self.exhaust(exhaustion); }
+            if broken {
+                self.exhaust(exhaustion);
+            }
             Ok(broken)
         }
     }
@@ -229,7 +262,14 @@ impl Game<'_> {
             }
             let State { runtime, config, pending } = state;
             runtime
-                .mine(&mut Native { game, pending: Some(pending) }, config.as_ref().unwrap(), pos)
+                .mine(
+                    &mut Native {
+                        game,
+                        pending: Some(pending),
+                    },
+                    config.as_ref().unwrap(),
+                    pos,
+                )
                 .map(|_| ())
         })
     }
@@ -264,7 +304,8 @@ impl Game<'_> {
     }
 
     pub(super) fn veinminer_key_tick(&mut self) {
-        let down = self.screen == super::Screen::Playing && self.keys.contains(&winit::keyboard::KeyCode::KeyV);
+        let down = self.screen == super::Screen::Playing
+            && self.keys.contains(&winit::keyboard::KeyCode::KeyV);
         let changed = with_state(self, |_, state| {
             let changed = (down != state.key_was_down).then_some(down);
             state.key_was_down = down;
@@ -274,10 +315,20 @@ impl Game<'_> {
             self.handle_chat_input(if down { "/veinminer keydown" } else { "/veinminer keyup" });
         }
     }
-    pub(super) fn veinminer_redirect_drop(&mut self, stack: &horizon_client::items::ItemStack, position: [f64; 3], velocity: [f64; 3], pickup_delay: u32) -> core::ops::ControlFlow<()> {
+    pub(super) fn veinminer_redirect_drop(
+        &mut self,
+        stack: &horizon_client::items::ItemStack,
+        position: [f64; 3],
+        velocity: [f64; 3],
+        pickup_delay: u32,
+    ) -> core::ops::ControlFlow<()> {
         let target = DROP_TARGET.with(|slot| *slot.borrow());
-        let Some(target) = target else { return core::ops::ControlFlow::Continue(()); };
-        let Some(_guard) = RedirectGuard::enter() else { return core::ops::ControlFlow::Continue(()); };
+        let Some(target) = target else {
+            return core::ops::ControlFlow::Continue(());
+        };
+        let Some(_guard) = RedirectGuard::enter() else {
+            return core::ops::ControlFlow::Continue(());
+        };
         self.spawn_item(stack.clone(), target, velocity, pickup_delay);
         let _ = position;
         core::ops::ControlFlow::Break(())
@@ -309,16 +360,35 @@ impl Game<'_> {
                 let Some(block) = host.block(task.position) else { continue; };
                 if block != task.expected { continue; }
                 let tool = host.tool();
-                if task.tool_item.as_ref().is_some_and(|id| tool.as_ref().is_none_or(|tool| &tool.item != id)) { continue; }
-                let Some((settings, _)) = config.action(&block.name, tool.as_ref().map(|tool| tool.item.as_str())) else { continue; };
+                if task
+                    .tool_item
+                    .as_ref()
+                    .is_some_and(|id| tool.as_ref().is_none_or(|tool| &tool.item != id))
+                {
+                    continue;
+                }
+                let Some((settings, _)) = config.action(
+                    &block.name,
+                    tool.as_ref().map(|tool| tool.item.as_str()),
+                ) else {
+                    continue;
+                };
                 if !settings.enabled
                     || settings.must_sneak && !player.sneaking
                     || settings.permission_restricted && !config.players.contains(&player.name)
-                    || settings.require_enchantment && host.enchantment_level("veinminer_enchantment:veinminer") < settings.min_enchant_level
+                    || settings.require_enchantment
+                        && host.enchantment_level("veinminer_enchantment:veinminer")
+                            < settings.min_enchant_level
                     || settings.need_correct_tool && !host.can_harvest(&block)
-                    || settings.decrease_durability && tool.as_ref().and_then(|tool| tool.remaining).is_some_and(|n| n <= 1)
+                    || settings.decrease_durability
+                        && tool
+                            .as_ref()
+                            .and_then(|tool| tool.remaining)
+                            .is_some_and(|n| n <= 1)
                     || settings.hunger_per_block > 0.0 && !host.has_food()
-                { continue; }
+                {
+                    continue;
+                }
                 if host.mine_with_drop_target(task.position, task.preserve_durability, task.drop_target)? {
                     host.exhaust(task.exhaustion);
                 }
