@@ -11,10 +11,10 @@ The native port currently supports:
 - ore and wood groups, explicit block/tool groups and per-group overrides;
 - per-player session toggle and cooldown;
 - sneak, tool, permission, search-radius and maximum-chain controls;
-- durability protection and configurable exhaustion;
+- durability protection, configurable exhaustion and mining-speed multiplier (0.1×–10×);
 - JSON configuration and `/veinminer` commands.
 
-It does **not** claim feature parity with the NeoForge JAR yet. Delayed per-block mining, mining-speed adjustment, drop merging, client-side keybind/highlighting/pattern selection, and the Veinmine enchantment addon are not implemented in this native port. See [feature coverage](docs/compatibility.md) and [validation](docs/validation.md).
+It does **not** claim feature parity with the NeoForge JAR yet. Delayed per-block mining, drop merging, client-side keybind/highlighting/pattern selection, and the Veinmine enchantment addon are not implemented in this native port. See [feature coverage](docs/compatibility.md) and [validation](docs/validation.md).
 
 ## Build and package
 
