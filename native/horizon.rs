@@ -34,13 +34,7 @@ thread_local! {
 struct DropTargetGuard(Option<[f64; 3]>);
 impl DropTargetGuard {
     fn set(position: Option<Position>) -> Self {
-        let target = position.map(|p| {
-            [
-                p[0] as f64 + 0.5,
-                p[1] as f64 + 0.5,
-                p[2] as f64 + 0.5,
-            ]
-        });
+        let target = position.map(|p| [p[0] as f64 + 0.5, p[1] as f64 + 0.5, p[2] as f64 + 0.5]);
         let previous = DROP_TARGET.with(|slot| slot.replace(target));
         Self(previous)
     }
@@ -55,13 +49,7 @@ impl Drop for DropTargetGuard {
 struct RedirectGuard;
 impl RedirectGuard {
     fn enter() -> Option<Self> {
-        REDIRECTING_DROP.with(|flag| {
-            if flag.replace(true) {
-                None
-            } else {
-                Some(Self)
-            }
-        })
+        REDIRECTING_DROP.with(|flag| if flag.replace(true) { None } else { Some(Self) })
     }
 }
 impl Drop for RedirectGuard {
@@ -248,7 +236,9 @@ impl Host for Native<'_, '_, '_> {
         }
     }
     fn enchantment_level(&self, id: &str) -> u32 {
-        self.game.held().map_or(0, |stack| stack.enchantment_level(id))
+        self.game
+            .held()
+            .map_or(0, |stack| stack.enchantment_level(id))
     }
     fn exhaust(&mut self, amount: f32) {
         if amount > 0.0
