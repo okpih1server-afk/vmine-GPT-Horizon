@@ -54,5 +54,6 @@ target = "horizon_client::game::Game<'_>::destroy_progress"
 helper = "speed.rs"
 bindings = [
   { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "pos", ty = "[i32;3]", value = "pos" },
   { name = "value", ty = "f32", value = "$value" },
 ]
