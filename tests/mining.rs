@@ -28,6 +28,7 @@ impl World {
                 tick: 0,
                 survival: true,
                 sneaking: false,
+                veinmine_pressed: false,
             },
             tool: Some(Tool {
                 item: "minecraft:iron_pickaxe".into(),
