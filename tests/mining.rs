@@ -74,11 +74,18 @@ impl Host for World {
     fn has_food(&self) -> bool {
         self.food
     }
-    fn mine_with_drop_target(&mut self, p: Position, preserve: bool, drop_target: Option<Position>) -> Result<bool, Self::Error> {
+    fn mine_with_drop_target(
+        &mut self,
+        p: Position,
+        preserve: bool,
+        drop_target: Option<Position>,
+    ) -> Result<bool, Self::Error> {
         self.drop_targets.push(drop_target);
         self.mine(p, preserve)
     }
-    fn enchantment_level(&self, _: &str) -> u32 { self.enchantment }
+    fn enchantment_level(&self, _: &str) -> u32 {
+        self.enchantment
+    }
     fn mine(&mut self, p: Position, preserve: bool) -> Result<bool, Self::Error> {
         self.calls.push((p, preserve));
         if self.error == Some(p) {
