@@ -51,7 +51,9 @@ impl Settings {
         if !self.hunger_per_block.is_finite() || !(0.0..=40.0).contains(&self.hunger_per_block) {
             return Err("hungerPerBlock must be finite and 0..40".into());
         }
-        if !self.mining_speed_multiplier.is_finite() || !(0.1..=10.0).contains(&self.mining_speed_multiplier) {
+        if !self.mining_speed_multiplier.is_finite()
+            || !(0.1..=10.0).contains(&self.mining_speed_multiplier)
+        {
             return Err("miningSpeedMultiplier must be finite and 0.1..10".into());
         }
         Ok(())
