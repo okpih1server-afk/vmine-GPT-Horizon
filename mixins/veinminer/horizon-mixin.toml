@@ -50,7 +50,7 @@ bindings = [
 [[injection]]
 id = "mining-speed"
 kind = "RETURN"
-target = "horizon_client::game::Game<'_>::destroy_progress"
+target = "horizon_client::game::hand::Game<'_>::destroy_progress"
 helper = "speed.rs"
 bindings = [
   { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
