@@ -9,6 +9,7 @@
     "decreaseDurability": true,
     "hungerPerBlock": 0.0,
     "miningSpeedMultiplier": 1.0,
+    "miningSpeedModifier": 0.0,
     "separateGroupMining": false,
     "permissionRestricted": false
   },
@@ -34,6 +35,7 @@
         "decreaseDurability": null,
         "hungerPerBlock": null,
         "miningSpeedMultiplier": null,
+        "miningSpeedModifier": null,
         "separateGroupMining": null,
         "permissionRestricted": null
       }
