@@ -24,6 +24,7 @@ pub(super) struct State {
     runtime: Runtime,
     config: Option<Config>,
     pending: VecDeque<PendingMine>,
+    key_was_down: bool,
 }
 
 thread_local! {
@@ -262,6 +263,17 @@ impl Game<'_> {
         })
     }
 
+    pub(super) fn veinminer_key_tick(&mut self) {
+        let down = self.screen == super::Screen::Playing && self.keys.contains(&winit::keyboard::KeyCode::KeyV);
+        let changed = with_state(self, |_, state| {
+            let changed = (down != state.key_was_down).then_some(down);
+            state.key_was_down = down;
+            changed
+        });
+        if let Some(down) = changed {
+            self.handle_chat_input(if down { "/veinminer keydown" } else { "/veinminer keyup" });
+        }
+    }
     pub(super) fn veinminer_redirect_drop(&mut self, stack: &horizon_client::items::ItemStack, position: [f64; 3], velocity: [f64; 3], pickup_delay: u32) -> core::ops::ControlFlow<()> {
         let target = DROP_TARGET.with(|slot| *slot.borrow());
         let Some(target) = target else { return core::ops::ControlFlow::Continue(()); };
@@ -339,6 +351,11 @@ impl Game<'_> {
                     };
                     state.runtime.set_enabled(actor, on);
                     format!("Veinminer: {}", if on { "on" } else { "off" })
+                }
+                ["keydown"] | ["keyup"] => {
+                    if game.remote.is_some() { return None; }
+                    state.runtime.set_key_active(actor, args[0] == "keydown");
+                    return Some(true);
                 }
                 ["reload"] => {
                     if game.ui.registries.permission < 2 {
