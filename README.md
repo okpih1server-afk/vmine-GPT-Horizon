@@ -9,7 +9,7 @@ This repository starts from the independently written MIT-licensed native port a
 The native port currently supports:
 - connected vein mining (including diagonal neighbours) through Horizon's normal player block-breaking path;
 - ore and wood groups, explicit block/tool groups and per-group overrides;
-- per-player session toggle and cooldown, optional V-key activation, per-layer delay and merged item drops;
+- per-player session toggle and cooldown, optional V-key activation, per-block delay and merged item drops;
 - sneak, tool, permission, search-radius and maximum-chain controls;
 - durability protection, configurable exhaustion and mining-speed multiplier (0.1×–10×);
 - JSON configuration and `/veinminer` commands;
