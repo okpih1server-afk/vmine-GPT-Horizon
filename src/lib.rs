@@ -10,6 +10,11 @@ pub type Actor = [i32; 4];
 pub struct Settings {
     pub enabled: bool,
     pub cooldown: i64,
+    pub delay: u32,
+    pub merge_item_drops: bool,
+    pub require_enchantment: bool,
+    pub min_enchant_level: u32,
+    pub keybind_required: bool,
     pub must_sneak: bool,
     pub max_chain: usize,
     pub need_correct_tool: bool,
@@ -26,6 +31,11 @@ impl Default for Settings {
         Self {
             enabled: true,
             cooldown: 20,
+            delay: 1,
+            merge_item_drops: false,
+            require_enchantment: false,
+            min_enchant_level: 1,
+            keybind_required: false,
             must_sneak: false,
             max_chain: 100,
             need_correct_tool: true,
@@ -50,6 +60,12 @@ impl Settings {
         if !(0..=72_000).contains(&self.cooldown) {
             return Err("cooldown must be 0..72000 ticks".into());
         }
+        if self.delay > 1_200 {
+            return Err("delay must be 0..1200 ticks per layer".into());
+        }
+        if !(1..=255).contains(&self.min_enchant_level) {
+            return Err("minEnchantLevel must be 1..255".into());
+        }
         if !self.hunger_per_block.is_finite() || !(0.0..=40.0).contains(&self.hunger_per_block) {
             return Err("hungerPerBlock must be finite and 0..40".into());
         }
@@ -71,6 +87,11 @@ impl Settings {
 #[serde(default, deny_unknown_fields, rename_all = "camelCase")]
 pub struct Overrides {
     pub cooldown: Option<i64>,
+    pub delay: Option<u32>,
+    pub merge_item_drops: Option<bool>,
+    pub require_enchantment: Option<bool>,
+    pub min_enchant_level: Option<u32>,
+    pub keybind_required: Option<bool>,
     pub must_sneak: Option<bool>,
     pub max_chain: Option<usize>,
     pub need_correct_tool: Option<bool>,
@@ -87,6 +108,11 @@ impl Overrides {
         macro_rules! fields { ($($field:ident),*) => { $(if let Some(value) = self.$field { settings.$field = value; })* }; }
         fields!(
             cooldown,
+            delay,
+            merge_item_drops,
+            require_enchantment,
+            min_enchant_level,
+            keybind_required,
             must_sneak,
             max_chain,
             need_correct_tool,
@@ -258,6 +284,7 @@ pub struct Player {
     pub tick: i64,
     pub survival: bool,
     pub sneaking: bool,
+    pub veinmine_pressed: bool,
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Tool {
@@ -275,12 +302,22 @@ pub trait Host {
     fn has_food(&self) -> bool;
     // Must use the game's ordinary player-mining path, never /setblock.
     fn mine(&mut self, position: Position, preserve_durability: bool) -> Result<bool, Self::Error>;
+    fn mine_with_drop_target(&mut self, position: Position, preserve_durability: bool, _drop_target: Option<Position>) -> Result<bool, Self::Error> {
+        self.mine(position, preserve_durability)
+    }
+    fn schedule_mine(&mut self, position: Position, _expected: &Block, preserve_durability: bool, _delay: u32, drop_target: Option<Position>, exhaustion: f32) -> Result<bool, Self::Error> {
+        let broken = self.mine_with_drop_target(position, preserve_durability, drop_target)?;
+        if broken { self.exhaust(exhaustion); }
+        Ok(broken)
+    }
+    fn enchantment_level(&self, _id: &str) -> u32 { 0 }
     fn exhaust(&mut self, amount: f32);
 }
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Hit {
     pub position: Position,
     pub block: Block,
+    pub distance: u32,
 }
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct Report {
@@ -301,10 +338,10 @@ pub fn preview<H: Host>(
         return hits;
     }
     let mut seen = BTreeSet::from([origin]);
-    let mut queue = VecDeque::from([origin]);
+    let mut queue = VecDeque::from([(origin, 0_u32)]);
     // This bound caps reads of nonmatching neighbours as well as accepted blocks.
     let max_examined = settings.max_chain.saturating_mul(343).min(1_000_000);
-    while let Some(position) = queue.pop_front() {
+    while let Some((position, distance)) = queue.pop_front() {
         if hits.len() >= settings.max_chain {
             break;
         }
@@ -317,7 +354,7 @@ pub fn preview<H: Host>(
         {
             continue;
         }
-        hits.push(Hit { position, block });
+        hits.push(Hit { position, block, distance });
         let r = settings.search_radius;
         for x in -r..=r {
             for y in -r..=r {
@@ -331,7 +368,7 @@ pub fn preview<H: Host>(
                     };
                     let next = [x, y, z];
                     if seen.len() < max_examined && seen.insert(next) {
-                        queue.push_back(next);
+                        queue.push_back((next, distance.saturating_add(1)));
                     }
                 }
             }
@@ -374,6 +411,8 @@ impl Runtime {
                 && player.survival
                 && self.enabled(player.actor)
                 && (!settings.must_sneak || player.sneaking)
+                && (!settings.keybind_required || player.veinmine_pressed)
+                && (!settings.require_enchantment || host.enchantment_level("veinminer_enchantment:veinminer") >= settings.min_enchant_level)
                 && (!settings.permission_restricted || config.players.contains(&player.name))
                 && self
                     .cooldowns
@@ -425,11 +464,20 @@ impl Runtime {
                 report.stopped = true;
                 break;
             }
-            if !host.mine(hit.position, !settings.decrease_durability)? {
+            let preserve = !settings.decrease_durability;
+            let drop_target = settings.merge_item_drops.then_some(origin);
+            let broken = if settings.delay == 0 {
+                let broken = host.mine_with_drop_target(hit.position, preserve, drop_target)?;
+                if broken { host.exhaust(settings.hunger_per_block); }
+                broken
+            } else {
+                let delay = settings.delay.saturating_mul(hit.distance.max(1));
+                host.schedule_mine(hit.position, &hit.block, preserve, delay, drop_target, settings.hunger_per_block)?
+            };
+            if !broken {
                 report.stopped = true;
                 break;
             }
-            host.exhaust(settings.hunger_per_block);
             report.extra_broken += 1;
         }
         Ok(report)
