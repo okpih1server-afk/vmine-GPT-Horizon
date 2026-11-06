@@ -163,8 +163,8 @@ impl Game<'_> {
                 .map(|_| ())
         })
     }
-    pub(super) fn veinminer_speed_multiplier(&mut self, speed: f32) -> f32 {
-        with_state(self, |_, state| {
+    pub(super) fn veinminer_speed_multiplier(&mut self, pos: Position, speed: f32) -> f32 {
+        with_state(self, |game, state| {
             if state.config.is_none() {
                 state.config = Some(load_config().unwrap_or_else(|error| {
                     eprintln!("Veinminer disabled: {error}");
@@ -173,11 +173,16 @@ impl Game<'_> {
                     config
                 }));
             }
-            state
-                .config
-                .as_ref()
-                .map_or(1.0, |config| config.settings.mining_speed_multiplier)
-        }) * speed
+            let config = state.config.as_ref().unwrap();
+            let mut host = Native { game };
+            let tool = host.tool();
+            let Some(block) = host.block(pos) else { return speed };
+            let Some((settings, targets)) = config.action(&block.name, tool.as_ref().map(|t| t.item.as_str())) else { return speed };
+            if !settings.enabled { return speed; }
+            let vein_size = engine::preview(&host, pos, &targets, &settings).len();
+            let time_factor = 1.0 + settings.mining_speed_modifier * vein_size.saturating_sub(1) as f32;
+            speed * settings.mining_speed_multiplier * (1.0 / time_factor).max(0.01)
+        })
     }
 
     pub(super) fn veinminer_command(&mut self, command: &str) -> Option<bool> {
