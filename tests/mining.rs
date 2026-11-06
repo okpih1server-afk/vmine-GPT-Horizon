@@ -290,6 +290,8 @@ fn malformed_unknown_and_unbounded_configuration_fails_closed() {
         r#"{"settings":{"hungerPerBlock":-1}}"#,
         r#"{"settings":{"miningSpeedMultiplier":0}}"#,
         r#"{"settings":{"miningSpeedMultiplier":11}}"#,
+        r#"{"settings":{"miningSpeedModifier":-0.1}}"#,
+        r#"{"settings":{"miningSpeedModifier":1.1}}"#,
         r#"{"settings":{"delay":5}}"#,
         r#"{"groups":[{"id":"x","blocks":["no-namespace"]}]}"#,
         r#"{"groups":[{"id":"x","blocks":["minecraft:stone"]},{"id":"x","blocks":["minecraft:dirt"]}]}"#,
