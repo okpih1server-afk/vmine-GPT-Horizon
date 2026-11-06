@@ -15,7 +15,7 @@ The native port currently supports:
 - JSON configuration and `/veinminer` commands;
 - optional Veinmine-enchantment requirement (`requireEnchantment`).
 
-The client preview/highlighting/pattern-selection addon is not yet ported. Delayed mining, merged drops, optional V-key gating and the optional Veinmine enchantment data pack are available in this native port. See [feature coverage](docs/compatibility.md) and [validation](docs/validation.md).
+The client preview/highlighting/pattern-selection addon is not yet ported. Host-player delayed mining, merged drops, optional V-key gating and the optional Veinmine enchantment data pack are available. LAN guest chains currently execute immediately. See [feature coverage](docs/compatibility.md) and [validation](docs/validation.md).
 
 ## Build and package
 
