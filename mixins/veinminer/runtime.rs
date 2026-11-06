@@ -474,7 +474,7 @@ impl Runtime {
         self.cooldowns.retain(|_, end| *end > player.tick);
         self.cooldowns
             .insert(player.actor, player.tick.saturating_add(settings.cooldown));
-        for hit in hits.into_iter().skip(1) {
+        for (index, hit) in hits.into_iter().enumerate().skip(1) {
             if host.tool() != tool
                 && host.tool().as_ref().map(|t| &t.item) != tool.as_ref().map(|t| &t.item)
             {
@@ -509,7 +509,7 @@ impl Runtime {
                 }
                 broken
             } else {
-                let delay = settings.delay.saturating_mul(hit.distance.max(1));
+                let delay = settings.delay.saturating_mul(index as u32);
                 host.schedule_mine(
                     hit.position,
                     &hit.block,
@@ -1030,6 +1030,7 @@ struct World {
     xp: usize,
     exhaustion: f32,
     drop_targets: Vec<Option<Position>>,
+    delays: Vec<u32>,
     enchantment: u32,
     failed: BTreeSet<Position>,
     error: Option<Position>,
@@ -1061,6 +1062,7 @@ impl World {
             xp: 0,
             exhaustion: 0.0,
             drop_targets: Vec::new(),
+            delays: Vec::new(),
             enchantment: 0,
             failed: BTreeSet::new(),
             error: None,
@@ -1100,6 +1102,22 @@ impl Host for World {
     ) -> Result<bool, Self::Error> {
         self.drop_targets.push(drop_target);
         self.mine(p, preserve)
+    }
+    fn schedule_mine(
+        &mut self,
+        p: Position,
+        _expected: &Block,
+        preserve: bool,
+        delay: u32,
+        drop_target: Option<Position>,
+        exhaustion: f32,
+    ) -> Result<bool, Self::Error> {
+        self.delays.push(delay);
+        let broken = self.mine_with_drop_target(p, preserve, drop_target)?;
+        if broken {
+            self.exhaust(exhaustion);
+        }
+        Ok(broken)
     }
     fn enchantment_level(&self, _: &str) -> u32 {
         self.enchantment
@@ -1340,7 +1358,7 @@ fn malformed_unknown_and_unbounded_configuration_fails_closed() {
 }
 
 #[test]
-fn delayed_layers_keep_bfs_distance_and_merged_drops_use_source_position() {
+fn delayed_breaks_are_staggered_per_block_and_merge_drops_at_source() {
     let mut w = World::new(&[[0, 0, 0], [1, 0, 0], [2, 0, 0]]);
     let targets = BTreeSet::from(["minecraft:iron_ore".into()]);
     let hits = preview(&w, [0, 0, 0], &targets, &Settings::default());
@@ -1352,6 +1370,7 @@ fn delayed_layers_keep_bfs_distance_and_merged_drops_use_source_position() {
     c.settings.delay = 2;
     c.settings.merge_item_drops = true;
     assert_eq!(mine(&mut w, &c).extra_broken, 2);
+    assert_eq!(w.delays, vec![2, 4]);
     assert_eq!(w.drop_targets, vec![Some([0, 0, 0]), Some([0, 0, 0])]);
 }
 
