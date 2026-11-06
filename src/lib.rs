@@ -16,6 +16,7 @@ pub struct Settings {
     pub search_radius: i32,
     pub decrease_durability: bool,
     pub hunger_per_block: f32,
+    pub mining_speed_multiplier: f32,
     pub separate_group_mining: bool,
     pub permission_restricted: bool,
 }
@@ -30,6 +31,7 @@ impl Default for Settings {
             search_radius: 1,
             decrease_durability: true,
             hunger_per_block: 0.0,
+            mining_speed_multiplier: 1.0,
             separate_group_mining: false,
             permission_restricted: false,
         }
@@ -49,6 +51,9 @@ impl Settings {
         if !self.hunger_per_block.is_finite() || !(0.0..=40.0).contains(&self.hunger_per_block) {
             return Err("hungerPerBlock must be finite and 0..40".into());
         }
+        if !self.mining_speed_multiplier.is_finite() || !(0.1..=10.0).contains(&self.mining_speed_multiplier) {
+            return Err("miningSpeedMultiplier must be finite and 0.1..10".into());
+        }
         Ok(())
     }
 }
@@ -63,6 +68,7 @@ pub struct Overrides {
     pub search_radius: Option<i32>,
     pub decrease_durability: Option<bool>,
     pub hunger_per_block: Option<f32>,
+    pub mining_speed_multiplier: Option<f32>,
     pub separate_group_mining: Option<bool>,
     pub permission_restricted: Option<bool>,
 }
@@ -77,6 +83,7 @@ impl Overrides {
             search_radius,
             decrease_durability,
             hunger_per_block,
+            mining_speed_multiplier,
             separate_group_mining,
             permission_restricted
         );
