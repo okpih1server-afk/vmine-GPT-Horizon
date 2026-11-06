@@ -389,7 +389,11 @@ impl Game<'_> {
                 {
                     continue;
                 }
-                if host.mine_with_drop_target(task.position, task.preserve_durability, task.drop_target)? {
+                if host.mine_with_drop_target(
+                    task.position,
+                    task.preserve_durability,
+                    task.drop_target,
+                )? {
                     host.exhaust(task.exhaustion);
                 }
             }
