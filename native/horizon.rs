@@ -163,6 +163,20 @@ impl Game<'_> {
                 .map(|_| ())
         })
     }
+    pub(super) fn veinminer_speed_multiplier(&mut self, speed: f32) -> f32 {
+        with_state(self, |_, state| {
+            if state.config.is_none() {
+                state.config = Some(load_config().unwrap_or_else(|error| {
+                    eprintln!("Veinminer disabled: {error}");
+                    let mut config = Config::default();
+                    config.settings.enabled = false;
+                    config
+                }));
+            }
+            state.config.as_ref().map_or(1.0, |config| config.settings.mining_speed_multiplier)
+        }) * speed
+    }
+
     pub(super) fn veinminer_command(&mut self, command: &str) -> Option<bool> {
         with_state(self, |game, state| {
             let mut words = command.split_whitespace();
