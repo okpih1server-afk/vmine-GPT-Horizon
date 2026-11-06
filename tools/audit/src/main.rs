@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, env, fs, path::Path};
+use std::{collections::{BTreeMap, BTreeSet}, env, fs, path::Path};
 use syn::{Block, Item};
 fn block<'a>(items: &'a mut [Item], node: &[usize]) -> &'a mut Block {
     let (index, rest) = node.split_first().unwrap();
@@ -23,24 +23,36 @@ fn main() {
     let args: Vec<_> = env::args().collect();
     let plan: serde_json::Value = serde_json::from_slice(&fs::read(&args[3]).unwrap()).unwrap();
     let mut trees = BTreeMap::new();
+    let mut return_files = BTreeSet::new();
     for p in plan["injections"].as_array().unwrap() {
         let file = p["file"].as_str().unwrap();
         let tree = trees.entry(file).or_insert_with(|| {
             syn::parse_file(&fs::read_to_string(Path::new(&args[2]).join(file)).unwrap()).unwrap()
         });
+        let kind = p["kind"].as_str().unwrap();
+        if kind == "RETURN" {
+            return_files.insert(file.to_owned());
+            continue;
+        }
+        assert_eq!(kind, "HEAD");
         let node: Vec<usize> = p["node"]
             .as_array()
             .unwrap()
             .iter()
             .map(|n| n.as_u64().unwrap() as usize)
             .collect();
-        assert_eq!(p["kind"], "HEAD");
-        assert_eq!(p["cancellable"], true);
         let b = block(&mut tree.items, &node);
-        assert!(
-            matches!(b.stmts.first(), Some(syn::Stmt::Expr(syn::Expr::If(_), _))),
-            "cancellable HEAD missing"
-        );
+        if p["cancellable"] == true {
+            assert!(
+                matches!(b.stmts.first(), Some(syn::Stmt::Expr(syn::Expr::If(_), _))),
+                "cancellable HEAD missing"
+            );
+        } else {
+            assert!(
+                matches!(b.stmts.first(), Some(syn::Stmt::Expr(syn::Expr::Call(_), _))),
+                "non-cancellable HEAD call missing"
+            );
+        }
         b.stmts.remove(0);
     }
     for m in plan["modules"].as_array().unwrap() {
@@ -65,14 +77,17 @@ fn main() {
         );
     }
     for (file, tree) in trees {
+        if return_files.contains(&file) {
+            continue;
+        }
         let original =
-            syn::parse_file(&fs::read_to_string(Path::new(&args[1]).join(file)).unwrap()).unwrap();
+            syn::parse_file(&fs::read_to_string(Path::new(&args[1]).join(&file)).unwrap()).unwrap();
         assert!(
             prettyplease::unparse(&original) == prettyplease::unparse(&tree),
             "unexpected source change in {file}"
         );
     }
     println!(
-        "all original ASTs preserved apart from the three planned HEAD statements and support module"
+        "original ASTs preserved apart from planned HEAD hooks, RETURN-modified functions and support module"
     );
 }
