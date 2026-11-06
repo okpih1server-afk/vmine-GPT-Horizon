@@ -177,10 +177,18 @@ impl Game<'_> {
             let mut host = Native { game };
             let tool = host.tool();
             let Some(block) = host.block(pos) else { return speed };
-            let Some((settings, targets)) = config.action(&block.name, tool.as_ref().map(|t| t.item.as_str())) else { return speed };
-            if !settings.enabled { return speed; }
+            let Some((settings, targets)) = config.action(
+                &block.name,
+                tool.as_ref().map(|t| t.item.as_str()),
+            ) else {
+                return speed;
+            };
+            if !settings.enabled {
+                return speed;
+            }
             let vein_size = engine::preview(&host, pos, &targets, &settings).len();
-            let time_factor = 1.0 + settings.mining_speed_modifier * vein_size.saturating_sub(1) as f32;
+            let time_factor =
+                1.0 + settings.mining_speed_modifier * vein_size.saturating_sub(1) as f32;
             speed * settings.mining_speed_multiplier * (1.0 / time_factor).max(0.01)
         })
     }
