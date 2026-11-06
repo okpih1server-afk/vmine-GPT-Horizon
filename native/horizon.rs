@@ -269,7 +269,11 @@ impl Game<'_> {
                     config
                 }));
             }
-            let State { runtime, config, pending } = state;
+            let State {
+                runtime,
+                config,
+                pending,
+            } = state;
             runtime
                 .mine(
                     &mut Native {
@@ -293,13 +297,17 @@ impl Game<'_> {
                 }));
             }
             let config = state.config.as_ref().unwrap();
-            let mut host = Native { game, pending: None };
+            let mut host = Native {
+                game,
+                pending: None,
+            };
             let tool = host.tool();
-            let Some(block) = host.block(pos) else { return speed };
-            let Some((settings, targets)) = config.action(
-                &block.name,
-                tool.as_ref().map(|t| t.item.as_str()),
-            ) else {
+            let Some(block) = host.block(pos) else {
+                return speed;
+            };
+            let Some((settings, targets)) =
+                config.action(&block.name, tool.as_ref().map(|t| t.item.as_str()))
+            else {
                 return speed;
             };
             if !settings.enabled {
@@ -321,7 +329,11 @@ impl Game<'_> {
             changed
         });
         if let Some(down) = changed {
-            self.handle_chat_input(if down { "/veinminer keydown" } else { "/veinminer keyup" });
+            self.handle_chat_input(if down {
+                "/veinminer keydown"
+            } else {
+                "/veinminer keyup"
+            });
         }
     }
     pub(super) fn veinminer_redirect_drop(
@@ -357,17 +369,29 @@ impl Game<'_> {
             let mut due = Vec::new();
             let mut waiting = VecDeque::new();
             while let Some(task) = state.pending.pop_front() {
-                if task.due_tick <= now && task.actor == actor { due.push(task); }
-                else { waiting.push_back(task); }
+                if task.due_tick <= now && task.actor == actor {
+                    due.push(task);
+                } else {
+                    waiting.push_back(task);
+                }
             }
             state.pending = waiting;
             let config = state.config.as_ref().unwrap().clone();
             for task in due {
-                let mut host = Native { game, pending: None };
+                let mut host = Native {
+                    game,
+                    pending: None,
+                };
                 let player = host.player();
-                if !player.survival || !state.runtime.enabled(task.actor) { continue; }
-                let Some(block) = host.block(task.position) else { continue; };
-                if block != task.expected { continue; }
+                if !player.survival || !state.runtime.enabled(task.actor) {
+                    continue;
+                }
+                let Some(block) = host.block(task.position) else {
+                    continue;
+                };
+                if block != task.expected {
+                    continue;
+                }
                 let tool = host.tool();
                 if task
                     .tool_item
@@ -376,10 +400,9 @@ impl Game<'_> {
                 {
                     continue;
                 }
-                let Some((settings, _)) = config.action(
-                    &block.name,
-                    tool.as_ref().map(|tool| tool.item.as_str()),
-                ) else {
+                let Some((settings, _)) =
+                    config.action(&block.name, tool.as_ref().map(|tool| tool.item.as_str()))
+                else {
                     continue;
                 };
                 if !settings.enabled
@@ -436,7 +459,9 @@ impl Game<'_> {
                     format!("Veinminer: {}", if on { "on" } else { "off" })
                 }
                 ["keydown"] | ["keyup"] => {
-                    if game.remote.is_some() { return None; }
+                    if game.remote.is_some() {
+                        return None;
+                    }
                     state.runtime.set_key_active(actor, args[0] == "keydown");
                     return Some(true);
                 }
