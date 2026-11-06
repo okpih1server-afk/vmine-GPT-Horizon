@@ -77,11 +77,11 @@ fn main() {
         );
     }
     for (file, tree) in trees {
-        if return_files.contains(&file) {
+        if return_files.contains(file) {
             continue;
         }
         let original =
-            syn::parse_file(&fs::read_to_string(Path::new(&args[1]).join(&file)).unwrap()).unwrap();
+            syn::parse_file(&fs::read_to_string(Path::new(&args[1]).join(file)).unwrap()).unwrap();
         assert!(
             prettyplease::unparse(&original) == prettyplease::unparse(&tree),
             "unexpected source change in {file}"
