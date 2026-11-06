@@ -22,12 +22,12 @@ configuration format and native Horizon adapter.
 | Client preview/highlighting, HUD, tunnel/flat shape selector | Future work; core exposes a pure connected-block preview API |
 | Veinmine enchantment addon | Implemented as an optional data pack (`veinminer-enchantment.zip`) plus `requireEnchantment` / `minEnchantLevel` server checks |
 | Delayed per-layer mining | Implemented: queued extra breaks run on later game ticks; `delay` sets ticks per BFS layer |
-| Mining-speed adjustment | Implemented with the upstream vein-size penalty (`miningSpeedModifier`, 0–1) plus an optional global multiplier (`miningSpeedMultiplier`, 0.1×–10×), applied by a RETURN modifier on Horizon `destroy_progress`; delayed/layered breaking remains future work |
+| Mining-speed adjustment | Implemented with the upstream vein-size penalty (`miningSpeedModifier`, 0–1) plus an optional global multiplier (`miningSpeedMultiplier`, 0.1×–10×), applied by a RETURN modifier on Horizon `destroy_progress` |
 | Merged drop positions | Implemented: item entities spawned during extra breaks redirect to the source block |
 | Upstream `/settings`, `/groups`, `/presets`, `/blocks` editing | Future work; edit JSON and reload |
 | Tags, wildcard IDs and client/server configuration packets | Future work; explicit IDs and server configuration only |
 | Automatic updates | Future work |
-| Native mixin bundle | Implemented: three cancellable TOML HEAD hooks, one RETURN modifier and one support module, applied by horizon-mixins 0.6.0 |
+| Native mixin bundle | Implemented: five cancellable TOML HEAD hooks, one RETURN modifier and one support module, applied by horizon-mixins 0.6.0 |
 | `.hnmod` packaging | Implemented: deterministic source bundle, published as a CI artifact; launcher support remains experimental |
 
 The maximum chain counts eligible selected blocks, including the original.
