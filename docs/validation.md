@@ -116,3 +116,8 @@ the actual launcher worker and Mixins CLI: compilation, cache reuse, disable,
 argument forwarding, modified-file rejection, revocation and another source
 revision marked unverified all passed. The full Mixins suite passed 64 tests.
 No visual gameplay session with Veinminer or prepared Minecraft resources was run.
+
+
+## Pending validation after delayed mining and client key changes
+
+The current source adds per-layer delayed tasks, item-drop redirection, an optional Veinmine data pack, and V-key press/release forwarding. These changes have not yet passed the pinned Horizon native staging/compilation and in-game multiplayer checks. Do not treat the earlier October validation results as validation of this newer source revision.
